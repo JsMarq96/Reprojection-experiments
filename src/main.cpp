@@ -2,6 +2,7 @@
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
 
+#include "glcorearb.h"
 #include "skybox_renderer.h"
 #include "tiny_gltf.h"
 
@@ -13,6 +14,8 @@
 #include "gltf_parser.h"
 #include "gltf_scene.h"
 
+#include <stb_image.h>
+#include <stb_image_write.h>
 
 // Dear IMGUI
 #include "imgui/imgui.h"
@@ -24,6 +27,29 @@
 #define WIN_NAME	"Test"
 
 sInputLayer input_state = {};
+
+/**
+ * Based on: https://lencerf.github.io/post/2019-09-21-save-the-opengl-rendering-to-image-file/
+ * */
+void save_framebuffer_to_file(const char* file,
+							        GLFWwindow *window) {
+	int win_width, win_height;
+
+	glfwGetFramebufferSize(window, &win_width, &win_height);
+
+	GLsizei stride = 3 * win_width; // 3 for the channels
+	stride = (stride % 4) ? (4 - stride % 4) : 0;
+
+	GLsizei buffer_size = stride * win_height;
+
+	char* raw_buffer = (char*) malloc(sizeof(char) * buffer_size);
+	glPixelStorei(GL_PACK_ALIGNMENT, 4);
+	glReadBuffer(GL_FRONT);
+	glReadPixels(0, 0, win_width, win_height, GL_RGB, GL_UNSIGNED_BYTE, raw_buffer);
+
+	stbi_flip_vertically_on_write(true);
+	stbi_write_png(file, win_width, win_height, 3, raw_buffer, stride);
+}
 
 void temp_error_callback(int error_code, const char* descr) {
 	std::cout << "GLFW Error: " << error_code << " " << descr << std::endl;
