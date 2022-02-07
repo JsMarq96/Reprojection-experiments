@@ -267,7 +267,7 @@ void draw_loop(GLFWwindow *window) {
 
 		//camera.look_at({0.0f, 0.0f, 0.0f});
 		camera.compute_view_matrix();
-		camera.get_perspective_viewprojection_matrix(90.0f, 10000.0f, 0.0001f, aspect_ratio, &viewproj_mat);
+		camera.get_perspective_viewprojection_matrix(90.0f, 1000.0f, 0.0001f, aspect_ratio, &viewproj_mat);
 
 		skybox_renderer.render(viewproj_mat,
 							   camera);
