@@ -13,6 +13,7 @@
 #include "input_layer.h"
 #include "gltf_parser.h"
 #include "gltf_scene.h"
+#include "render_context.h"
 
 #include <stb_image.h>
 #include <stb_image_write.h>
@@ -168,6 +169,14 @@ void draw_loop(GLFWwindow *window) {
 	scene.materials[scifi_helm_material].add_shader("resources/shaders/pbr.vs",
 													"resources/shaders/pbr.fs");
 #endif
+	int width, heigth;
+
+	glfwGetFramebufferSize(window, &width, &heigth);
+
+	// Init render context
+	sRenderContext render_context = {};
+	render_context.init(width, heigth);
+	render_context.bind();
 
 	double prev_frame_time = glfwGetTime();
 
@@ -185,7 +194,6 @@ void draw_loop(GLFWwindow *window) {
 
 	while(!glfwWindowShouldClose(window)) {
 		// Draw loop
-		int width, heigth;
 		double temp_mouse_x, temp_mouse_y;
 		
 		glfwGetFramebufferSize(window, &width, &heigth);

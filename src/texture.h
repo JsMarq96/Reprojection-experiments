@@ -30,6 +30,9 @@ void load_texture(sTexture  *text,
                   const bool store_on_RAM,
                   const char *texture_name);
 
+void store_texture(const sTexture *text,
+                   const char *name);
+
 void delete_texture(sTexture  *text);
 
 #endif //_TEXTURE_H_
