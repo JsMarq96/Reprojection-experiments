@@ -195,6 +195,8 @@ void draw_loop(GLFWwindow *window) {
 	while(!glfwWindowShouldClose(window)) {
 		// Draw loop
 		double temp_mouse_x, temp_mouse_y;
+
+		render_context.bind();
 		
 		glfwGetFramebufferSize(window, &width, &heigth);
 		// Set to OpenGL viewport size anc coordinates
@@ -202,7 +204,7 @@ void draw_loop(GLFWwindow *window) {
 
 		float aspect_ratio = (float) width / heigth;
 
-		// OpenGL stuff
+		// Clean FBO
 		glClearColor(0.5f, 0.0f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -250,6 +252,22 @@ void draw_loop(GLFWwindow *window) {
 			camera.position = camera.position.sum(camera.s.normalize().mult(elapsed_time * 1.5f));
 		}
 
+		//camera.look_at({0.0f, 0.0f, 0.0f});
+		camera.compute_view_matrix();
+		camera.get_perspective_viewprojection_matrix(90.0f, 1000.0f, 0.0001f, aspect_ratio, &viewproj_mat);
+
+		skybox_renderer.render(viewproj_mat,
+							   camera);
+
+		scene.render(camera,
+					 viewproj_mat,
+					 light_position);
+
+		render_context.unbind();
+
+		// Render the FBO to the window screen
+		render_context.render_to_screen(width,
+										heigth);
 
 		// ImGui
 		ImGui::Begin("Scene control");
@@ -265,16 +283,10 @@ void draw_loop(GLFWwindow *window) {
 
 		ImGui::SliderFloat("Camera up-down", &camera.position.y, -3.01f, 8.0f);
 
-		//camera.look_at({0.0f, 0.0f, 0.0f});
-		camera.compute_view_matrix();
-		camera.get_perspective_viewprojection_matrix(90.0f, 1000.0f, 0.0001f, aspect_ratio, &viewproj_mat);
-
-		skybox_renderer.render(viewproj_mat,
-							   camera);
-
-		scene.render(camera,
-					 viewproj_mat,
-					 light_position);
+		if (ImGui::Button("Save FBOs")) {
+			render_context.store_attachments_to_CPU("color.png",
+													"depth.png");
+		}
 
 		ImGui::End();
 

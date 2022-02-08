@@ -7,6 +7,7 @@
 #include "glcorearb.h"
 
 #include <stb_image.h>
+#include <stb_image_write.h>
 
 void upload_simple_texture_to_GPU(sTexture *text);
 
@@ -99,6 +100,16 @@ void load_texture(sTexture  *text,
         glBindTexture(GL_TEXTURE_2D, 0);
 
     stbi_image_free(text->raw_data);
+}
+
+void store_texture(const sTexture *text,
+                  const char *name) {
+    stbi_write_png(name,
+                   text->width,
+                   text->height,
+                   text->layers,
+                   text->raw_data,
+                   text->width * text->layers);
 }
 
 void upload_simple_texture_to_GPU(sTexture *text) {
