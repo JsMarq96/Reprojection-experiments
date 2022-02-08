@@ -11,6 +11,9 @@
 #include <cassert>
 #include <stdlib.h>
 
+#include <stb_image.h>
+#include <stb_image_write.h>
+
 #include <iostream>
 
 struct sRenderContext {
@@ -19,8 +22,8 @@ struct sRenderContext {
     uint32_t  color_attachment = 0;
     uint32_t  depth_attachment = 0;
 
-    sTexture  color_texture = {};
-    sTexture  depth_texture = {};
+    uint16_t  window_width = 0;
+    uint16_t  window_height = 0;
 
     sQuadRenderer screen_quad = {};
 
@@ -66,15 +69,8 @@ struct sRenderContext {
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        color_texture.width = width;
-        color_texture.height = height;
-        color_texture.layers = 3;
-        color_texture.raw_data = (unsigned char*) malloc(sizeof(unsigned char) * width * height * 3);
-
-        depth_texture.width = width;
-        depth_texture.height = height;
-        depth_texture.layers = 3;
-        depth_texture.raw_data = (unsigned char*) malloc(sizeof(unsigned char) * width * height * 3);
+        window_height = height;
+        window_width = width;
 
         screen_quad.init();
     }
@@ -89,25 +85,56 @@ struct sRenderContext {
 
     void store_attachments_to_CPU(const char* color_txt,
                                   const char* depth_txt) {
+        uint32_t pixel_len = window_height * window_width;
+        unsigned char *raw_color = (unsigned char*) malloc(sizeof(unsigned char) * pixel_len * 4);
+        float *raw_depth = (float*) malloc(sizeof(float) * pixel_len * 1);
+
         glReadPixels(0,
                      0,
-                     color_texture.width,
-                     color_texture.height,
-                     GL_BGR,
+                     window_width,
+                     window_height,
+                     GL_RGBA,
                      GL_UNSIGNED_BYTE,
-                     color_texture.raw_data);
+                     raw_color);
+
         glReadPixels(0,
+                     0,
+                     window_width,
+                     window_height,
+                     GL_DEPTH_COMPONENT,
+                     GL_FLOAT,
+                     raw_depth);
+
+        float t = -0.001f;
+        for(uint32_t i = 0; i < t; i++) {
+            t = MAX(t, raw_depth[i]);
+        }
+        /*glReadPixels(0,
                      0,
                      depth_texture.width,
                      depth_texture.height,
                      GL_DEPTH_COMPONENT,
                      GL_FLOAT,
-                     depth_texture.raw_data);
+                     depth_texture.raw_data);*/
+        std::cout << raw_depth[0]  << " " << t << std::endl;
 
-        store_texture(&color_texture, color_txt);
-        std::cout << " Color" << std::endl;
-        store_texture(&depth_texture, depth_txt);
-        std::cout << " Depth" << std::endl;
+        stbi_write_png(color_txt,
+                       window_width,
+                       window_height,
+                       4,
+                       raw_color,
+                       window_width * 4);
+
+        stbi_write_png(depth_txt,
+                       window_width,
+                       window_height,
+                       1,
+                       raw_depth,
+                       window_width * 1);
+
+
+        free(raw_color);
+        free(raw_depth);
     }
 
     void render_to_screen(const uint16_t width,
@@ -126,9 +153,6 @@ struct sRenderContext {
         uint32_t text_ids[2] = {color_attachment, depth_attachment};
         glDeleteTextures(2, text_ids);
         glDeleteFramebuffers(1, &FBO);
-
-        free(color_texture.raw_data);
-        free(depth_texture.raw_data);
     }
 
 };

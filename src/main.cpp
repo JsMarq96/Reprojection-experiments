@@ -252,6 +252,8 @@ void draw_loop(GLFWwindow *window) {
 			camera.position = camera.position.sum(camera.s.normalize().mult(elapsed_time * 1.5f));
 		}
 
+		glEnable(GL_DEPTH_TEST);
+
 		//camera.look_at({0.0f, 0.0f, 0.0f});
 		camera.compute_view_matrix();
 		camera.get_perspective_viewprojection_matrix(90.0f, 1000.0f, 0.0001f, aspect_ratio, &viewproj_mat);
