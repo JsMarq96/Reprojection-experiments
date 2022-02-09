@@ -50,13 +50,17 @@ struct sQuadRenderer {
                                                "resources/shaders/quad.fs");
     }
 
-    void render(const uint32_t color_texture) const {
+    void render(const uint32_t color_texture,
+                const uint32_t depth_texture) const {
         glBindVertexArray(VAO);
         quad_material.enable();
 
         // Bind FBO color / texture color
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, color_texture);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, depth_texture);
 
         glDrawArrays(GL_TRIANGLES, 0, 6);
 

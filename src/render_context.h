@@ -146,7 +146,8 @@ struct sRenderContext {
         glClearColor(0.5f, 0.0f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        screen_quad.render(color_attachment);
+        screen_quad.render(color_attachment,
+                           depth_attachment);
     }
 
     void clean() {
