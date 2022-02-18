@@ -199,6 +199,9 @@ void draw_loop(GLFWwindow *window) {
 		render_context.bind();
 		
 		glfwGetFramebufferSize(window, &width, &heigth);
+
+		render_context.check_for_resize(width, heigth);
+
 		// Set to OpenGL viewport size anc coordinates
 		glViewport(0,0, width, heigth);
 
@@ -265,11 +268,11 @@ void draw_loop(GLFWwindow *window) {
 					 viewproj_mat,
 					 light_position);
 
-		render_context.unbind();
 
 		// Render the FBO to the window screen
 		render_context.render_to_screen(width,
 										heigth);
+		render_context.unbind();
 
 		// ImGui
 		ImGui::Begin("Scene control");

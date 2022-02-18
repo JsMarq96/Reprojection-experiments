@@ -58,9 +58,11 @@ struct sQuadRenderer {
         // Bind FBO color / texture color
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, color_texture);
+        quad_material.shader.set_uniform("u_color_text", 0);
 
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, depth_texture);
+        quad_material.shader.set_uniform("u_depth_text", 1);
 
         glDrawArrays(GL_TRIANGLES, 0, 6);
 

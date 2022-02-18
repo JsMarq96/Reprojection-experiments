@@ -52,7 +52,7 @@ struct sRenderContext {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
 
         // Generate the FBO
         glGenFramebuffers(1, &FBO);
@@ -83,11 +83,20 @@ struct sRenderContext {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
+    void check_for_resize(const uint16_t width, const uint16_t height) {
+        if (width != window_width || height == window_height) {
+            clean();
+            init(width, height);
+            bind();
+        }
+    }
+
     void store_attachments_to_CPU(const char* color_txt,
                                   const char* depth_txt) {
         uint32_t pixel_len = window_height * window_width;
         unsigned char *raw_color = (unsigned char*) malloc(sizeof(unsigned char) * pixel_len * 4);
-        float *raw_depth = (float*) malloc(sizeof(float) * pixel_len * 1);
+        float *raw_depth = (float*) malloc(sizeof(float) * pixel_len * 4);
+        memset(raw_depth, 0.0f, sizeof(float) * pixel_len * 4);
 
         glReadPixels(0,
                      0,
@@ -102,11 +111,16 @@ struct sRenderContext {
                      window_width,
                      window_height,
                      GL_DEPTH_COMPONENT,
-                     GL_FLOAT,
+                     GL_UNSIGNED_INT,
                      raw_depth);
 
         float t = -0.001f;
-        for(uint32_t i = 0; i < t; i++) {
+        const float near = 0.0001f;
+        const float far = 1000.0f;
+
+        for(uint32_t i = 0; i < pixel_len; i++) {
+            float tmp = 2.0f * raw_depth[i] - 1.0f;
+            raw_depth[i] = 2.0f * near * far / (far + near - tmp * (far - near));
             t = MAX(t, raw_depth[i]);
         }
         /*glReadPixels(0,
@@ -128,10 +142,9 @@ struct sRenderContext {
         stbi_write_png(depth_txt,
                        window_width,
                        window_height,
-                       1,
+                       4,
                        raw_depth,
-                       window_width * 1);
-
+                       window_width * 4);
 
         free(raw_color);
         free(raw_depth);
